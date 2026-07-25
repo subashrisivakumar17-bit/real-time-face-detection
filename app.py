@@ -1,12 +1,13 @@
 import cv2
 import av
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 st.set_page_config(page_title="Real Time Face Detection")
 
 st.title("📷 Real Time Face Detection")
 
+# Load Haar Cascade
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
@@ -29,7 +30,7 @@ class FaceDetector(VideoProcessorBase):
             color = (0, 255, 0)
 
             for (x, y, w, h) in faces:
-                cv2.rectangle(img, (x, y), (x+w, y+h), color, 2)
+                cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
         else:
             text = "Human Face is Not Detected"
             color = (0, 0, 255)
@@ -49,6 +50,17 @@ class FaceDetector(VideoProcessorBase):
 
 webrtc_streamer(
     key="face-detection",
+    mode=WebRtcMode.SENDRECV,
     video_processor_factory=FaceDetector,
-    media_stream_constraints={"video": True, "audio": False},
+    media_stream_constraints={
+        "video": True,
+        "audio": False,
+    },
+    rtc_configuration={
+        "iceServers": [
+            {"urls": ["stun:stun.l.google.com:19302"]},
+            {"urls": ["stun:stun1.l.google.com:19302"]},
+            {"urls": ["stun:stun2.l.google.com:19302"]},
+        ]
+    },
 )
